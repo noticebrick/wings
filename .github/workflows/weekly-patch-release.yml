@@ -50,6 +50,7 @@ jobs:
           name: wings-${{ steps.build.outputs.release_tag }}
           path: |
             dist/wings_linux_amd64
+            dist/wings_linux_arm64
             dist/SHA256SUMS
 
       - name: Create release
@@ -59,4 +60,5 @@ jobs:
           name: ${{ steps.build.outputs.release_tag }}
           files: |
             dist/wings_linux_amd64
+            dist/wings_linux_arm64
             dist/SHA256SUMS

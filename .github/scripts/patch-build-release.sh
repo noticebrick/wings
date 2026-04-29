@@ -80,6 +80,15 @@ go build \
 
 chmod 755 "$DIST_DIR/wings_linux_amd64"
 
-(cd "$DIST_DIR" && sha256sum wings_linux_amd64 > SHA256SUMS)
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+go build \
+  -o "$DIST_DIR/wings_linux_arm64" \
+  -trimpath \
+  -ldflags="-s -w -X github.com/pterodactyl/wings/system.Version=${EMBED_VERSION}" \
+  github.com/pterodactyl/wings
+
+chmod 755 "$DIST_DIR/wings_linux_arm64"
+
+(cd "$DIST_DIR" && sha256sum wings_linux_amd64 wings_linux_arm64 > SHA256SUMS)
 
 echo "Built release artifact for tag: $RELEASE_TAG"
