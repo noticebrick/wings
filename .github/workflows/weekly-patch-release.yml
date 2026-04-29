@@ -1,0 +1,61 @@
+name: Weekly Patch Release
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: "Optional upstream ref (branch, tag, or commit SHA)"
+        required: false
+        type: string
+      date_override:
+        description: "Optional release date in YYYYMMDD"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-patch-release
+  cancel-in-progress: false
+
+jobs:
+  patch-build-release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout automation repository
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.24.13"
+
+      - name: Patch and build
+        id: build
+        env:
+          UPSTREAM_URL: https://github.com/pterodactyl/wings
+          UPSTREAM_REF: ${{ inputs.upstream_ref }}
+          DATE_OVERRIDE: ${{ inputs.date_override }}
+          PATCH_DIR: ${{ github.workspace }}/patches
+          DIST_DIR: ${{ github.workspace }}/dist
+        run: .github/scripts/patch-build-release.sh
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: wings-${{ steps.build.outputs.release_tag }}
+          path: |
+            dist/wings_linux_amd64
+            dist/SHA256SUMS
+
+      - name: Create release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.build.outputs.release_tag }}
+          name: ${{ steps.build.outputs.release_tag }}
+          files: |
+            dist/wings_linux_amd64
+            dist/SHA256SUMS

@@ -1,0 +1,38 @@
+diff --git a/environment/docker/container.go b/environment/docker/container.go
+index 46b6744c..47493608 100644
+--- a/environment/docker/container.go
++++ b/environment/docker/container.go
+@@ -101,8 +101,8 @@ func (e *Environment) Attach(ctx context.Context) error {
+ 
+ // InSituUpdate performs an in-place update of the Docker container's resource
+ // limits without actually making any changes to the operational state of the
+-// container. This allows memory, cpu, and IO limitations to be adjusted on the
+-// fly for individual instances.
++// container. This allows memory and CPU limitations to be adjusted on the fly
++// for individual instances.
+ func (e *Environment) InSituUpdate() error {
+ 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+ 	defer cancel()
+diff --git a/environment/settings.go b/environment/settings.go
+index 1d57154e..c8d903f0 100644
+--- a/environment/settings.go
++++ b/environment/settings.go
+@@ -41,8 +41,8 @@ type Limits struct {
+ 	// The amount of additional swap space to be provided to a container instance.
+ 	Swap int64 `json:"swap"`
+ 
+-	// The relative weight for IO operations in a container. This is relative to other
+-	// containers on the system and should be a value between 10 and 1000.
++	// Deprecated and ignored. This remains for payload compatibility with the Panel,
++	// but is intentionally not applied to Docker resource settings.
+ 	IoWeight uint16 `json:"io_weight"`
+ 
+ 	// The percentage of CPU that this instance is allowed to consume relative to
+@@ -107,7 +107,6 @@ func (l Limits) AsContainerResources() container.Resources {
+ 		Memory:            l.BoundedMemoryLimit(),
+ 		MemoryReservation: l.MemoryLimit * 1024 * 1024,
+ 		MemorySwap:        l.ConvertedSwap(),
+-		BlkioWeight:       l.IoWeight,
+ 		OomKillDisable:    &l.OOMDisabled,
+ 		PidsLimit:         &pids,
+ 	}
