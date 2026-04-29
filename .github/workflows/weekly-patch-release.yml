@@ -28,11 +28,28 @@ jobs:
       - name: Checkout automation repository
         uses: actions/checkout@v6
 
+      - name: Prepare upstream go.sum for cache key
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref }}
+        run: |
+          set -euo pipefail
+          WORK_DIR="$RUNNER_TEMP/wings-cache-src"
+          rm -rf "$WORK_DIR"
+          git clone --filter=blob:none https://github.com/pterodactyl/wings "$WORK_DIR"
+
+          if [[ -n "$UPSTREAM_REF" ]]; then
+            git -C "$WORK_DIR" fetch --force origin "$UPSTREAM_REF"
+            git -C "$WORK_DIR" checkout --force FETCH_HEAD
+          fi
+
+          cp "$WORK_DIR/go.sum" "$GITHUB_WORKSPACE/upstream.go.sum"
+
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
           go-version: "1.24.13"
-          cache: false
+          cache: true
+          cache-dependency-path: upstream.go.sum
 
       - name: Patch and build
         id: build

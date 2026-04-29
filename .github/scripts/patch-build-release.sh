@@ -71,6 +71,10 @@ fi
 
 mkdir -p "$DIST_DIR"
 
+echo "Building release artifact for tag: $RELEASE_TAG"
+
+echo "Building wings for linux/amd64"
+
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 go build \
   -o "$DIST_DIR/wings_linux_amd64" \
@@ -80,6 +84,8 @@ go build \
 
 chmod 755 "$DIST_DIR/wings_linux_amd64"
 
+echo "Building wings for linux/arm64"
+
 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
 go build \
   -o "$DIST_DIR/wings_linux_arm64" \
@@ -88,6 +94,8 @@ go build \
   github.com/pterodactyl/wings
 
 chmod 755 "$DIST_DIR/wings_linux_arm64"
+
+echo "Building SHA256SUMS"
 
 (cd "$DIST_DIR" && sha256sum wings_linux_amd64 wings_linux_arm64 > SHA256SUMS)
 
