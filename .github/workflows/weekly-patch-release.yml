@@ -70,11 +70,25 @@ jobs:
             dist/wings_linux_arm64
             dist/SHA256SUMS
 
+      - name: Replace existing release (same tag)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.build.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Existing release found for $RELEASE_TAG, deleting before publish."
+            gh release delete "$RELEASE_TAG" --yes --cleanup-tag=false
+          else
+            echo "No existing release for $RELEASE_TAG."
+          fi
+
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.build.outputs.release_tag }}
           name: ${{ steps.build.outputs.release_tag }}
+          overwrite_files: true
           files: |
             dist/wings_linux_amd64
             dist/wings_linux_arm64
